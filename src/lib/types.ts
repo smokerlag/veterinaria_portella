@@ -73,6 +73,11 @@ export type Pendiente = {
 };
 
 export const ESPECIES = ["perro", "gato", "ave", "conejo", "reptil", "otro"] as const;
+
+export function labelEspecie(especie: string) {
+  if (!especie) return "";
+  return especie.charAt(0).toUpperCase() + especie.slice(1).toLowerCase();
+}
 export const TIPOS_HISTORIAL = [
   "consulta",
   "vacuna",

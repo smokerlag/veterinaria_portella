@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { ModalForm, SubmitRow, apiJson } from "@/components/ui";
 import type { Cliente } from "@/lib/types";
+import { ESPECIES, labelEspecie } from "@/lib/types";
 import { useAuth } from "@/hooks/useAuth";
 
 const empty = {
@@ -21,6 +22,7 @@ export default function ClientesPage() {
   const [q, setQ] = useState("");
   const [editing, setEditing] = useState(empty);
   const [error, setError] = useState("");
+  const [petError, setPetError] = useState("");
 
   async function load(search = q) {
     const data = await apiJson<Cliente[]>(
@@ -54,6 +56,40 @@ export default function ClientesPage() {
     close();
     setEditing(empty);
     await load();
+  }
+
+  async function onSubmitMascota(
+    e: FormEvent<HTMLFormElement>,
+    clienteId: number,
+    close: () => void
+  ) {
+    e.preventDefault();
+    setPetError("");
+    const fd = new FormData(e.currentTarget);
+    const peso = String(fd.get("peso_kg") || "");
+    const payload = {
+      cliente_id: clienteId,
+      nombre: String(fd.get("nombre") || ""),
+      especie: String(fd.get("especie") || "perro"),
+      raza: String(fd.get("raza") || ""),
+      sexo: String(fd.get("sexo") || "desconocido"),
+      fecha_nacimiento: String(fd.get("fecha_nacimiento") || ""),
+      color: String(fd.get("color") || ""),
+      peso_kg: peso ? Number(peso) : null,
+      microchip: String(fd.get("microchip") || ""),
+      notas: String(fd.get("notas") || ""),
+      activo: 1,
+    };
+
+    try {
+      await apiJson("/api/mascotas", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
+      close();
+    } catch (err) {
+      setPetError(err instanceof Error ? err.message : "No se pudo guardar");
+    }
   }
 
   async function remove(id: number) {
@@ -152,6 +188,79 @@ export default function ClientesPage() {
                     <td>{c.direccion || "—"}</td>
                     <td>
                       <div className="actions">
+                        <ModalForm
+                          title={`Nueva mascota · ${c.nombre}`}
+                          triggerLabel="Nueva mascota"
+                          triggerClassName="btn secondary small"
+                          onOpen={() => setPetError("")}
+                        >
+                          {(close) => (
+                            <form
+                              key={`pet-${c.id}`}
+                              onSubmit={(e) => onSubmitMascota(e, c.id, close)}
+                            >
+                              <div className="form-grid">
+                                <div className="field full">
+                                  <label>Dueño</label>
+                                  <input value={c.nombre} disabled readOnly />
+                                </div>
+                                <div className="field">
+                                  <label>Nombre</label>
+                                  <input name="nombre" required autoFocus />
+                                </div>
+                                <div className="field">
+                                  <label>Especie</label>
+                                  <select name="especie" defaultValue="perro">
+                                    {ESPECIES.map((esp) => (
+                                      <option key={esp} value={esp}>
+                                        {labelEspecie(esp)}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </div>
+                                <div className="field">
+                                  <label>Raza</label>
+                                  <input name="raza" />
+                                </div>
+                                <div className="field">
+                                  <label>Sexo</label>
+                                  <select name="sexo" defaultValue="desconocido">
+                                    <option value="macho">Macho</option>
+                                    <option value="hembra">Hembra</option>
+                                    <option value="desconocido">Desconocido</option>
+                                  </select>
+                                </div>
+                                <div className="field">
+                                  <label>Fecha de nacimiento</label>
+                                  <input type="date" name="fecha_nacimiento" />
+                                </div>
+                                <div className="field">
+                                  <label>Color</label>
+                                  <input name="color" />
+                                </div>
+                                <div className="field">
+                                  <label>Peso (kg)</label>
+                                  <input name="peso_kg" type="number" step="0.1" />
+                                </div>
+                                <div className="field">
+                                  <label>Microchip</label>
+                                  <input name="microchip" />
+                                </div>
+                                <div className="field full">
+                                  <label>Notas</label>
+                                  <textarea name="notas" />
+                                </div>
+                              </div>
+                              {petError ? (
+                                <p style={{ color: "var(--danger)" }}>{petError}</p>
+                              ) : null}
+                              <SubmitRow
+                                onCancel={close}
+                                submitLabel="Guardar mascota"
+                              />
+                            </form>
+                          )}
+                        </ModalForm>
                         <ModalForm
                           title="Editar cliente"
                           triggerLabel="Editar"

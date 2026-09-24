@@ -3,7 +3,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { Modal, ModalForm, SubmitRow, apiJson } from "@/components/ui";
 import type { Cliente, Mascota } from "@/lib/types";
-import { ESPECIES } from "@/lib/types";
+import { ESPECIES, labelEspecie } from "@/lib/types";
 import { useAuth } from "@/hooks/useAuth";
 
 const empty = {
@@ -21,7 +21,9 @@ const empty = {
   activo: 1,
 };
 
-const NUEVO_CLIENTE = "__nuevo_cliente__";
+function ownerLabel(c: Cliente) {
+  return `${c.nombre}${c.dni ? ` · DNI ${c.dni}` : ""}`;
+}
 
 export default function MascotasPage() {
   const { canDelete } = useAuth();
@@ -30,6 +32,8 @@ export default function MascotasPage() {
   const [q, setQ] = useState("");
   const [editing, setEditing] = useState(empty);
   const [ownerId, setOwnerId] = useState("");
+  const [ownerQuery, setOwnerQuery] = useState("");
+  const [ownerListOpen, setOwnerListOpen] = useState(false);
   const [newClienteOpen, setNewClienteOpen] = useState(false);
   const [clienteError, setClienteError] = useState("");
 
@@ -50,14 +54,19 @@ export default function MascotasPage() {
 
   function openPetForm(data = empty) {
     setEditing(data);
-    setOwnerId(data.cliente_id ? String(data.cliente_id) : "");
+    const id = data.cliente_id ? String(data.cliente_id) : "";
+    setOwnerId(id);
+    const owner = clientes.find((c) => c.id === data.cliente_id);
+    setOwnerQuery(owner ? ownerLabel(owner) : "");
+    setOwnerListOpen(false);
     setClienteError("");
   }
 
   async function onSubmit(e: FormEvent<HTMLFormElement>, close: () => void) {
     e.preventDefault();
-    if (!ownerId || ownerId === NUEVO_CLIENTE) {
+    if (!ownerId) {
       setClienteError("Selecciona un dueño o crea uno nuevo");
+      setOwnerListOpen(true);
       return;
     }
     const fd = new FormData(e.currentTarget);
@@ -92,12 +101,10 @@ export default function MascotasPage() {
     await load();
   }
 
-  function onOwnerChange(value: string) {
-    if (value === NUEVO_CLIENTE) {
-      setNewClienteOpen(true);
-      return;
-    }
-    setOwnerId(value);
+  function selectOwner(c: Cliente) {
+    setOwnerId(String(c.id));
+    setOwnerQuery(ownerLabel(c));
+    setOwnerListOpen(false);
     setClienteError("");
   }
 
@@ -124,12 +131,26 @@ export default function MascotasPage() {
     });
     const owners = await apiJson<Cliente[]>("/api/clientes");
     setClientes(owners);
+    const nuevo = owners.find((c) => c.id === created.id);
     setOwnerId(String(created.id));
+    setOwnerQuery(nuevo ? ownerLabel(nuevo) : payload.nombre);
+    setOwnerListOpen(false);
     setNewClienteOpen(false);
   }
 
-  function FormFields() {
-    return (
+  const ownerFilter = ownerQuery.trim().toLowerCase();
+  const filteredOwners = clientes
+    .filter((c) => {
+      if (!ownerFilter) return true;
+      const blob = [c.nombre, c.dni, c.telefono, c.email]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      return blob.includes(ownerFilter);
+    })
+    .slice(0, 12);
+
+  const formFields = (
       <div className="form-grid">
         <div className="field">
           <label>Nombre</label>
@@ -137,32 +158,67 @@ export default function MascotasPage() {
         </div>
         <div className="field">
           <label>Dueño</label>
-          <div className="actions" style={{ alignItems: "stretch" }}>
-            <select
-              name="cliente_id"
-              required
-              value={ownerId}
-              onChange={(e) => onOwnerChange(e.target.value)}
-              style={{ flex: 1 }}
-            >
-              <option value="" disabled>
-                Seleccionar dueño
-              </option>
-              <option value={NUEVO_CLIENTE}>＋ Nuevo cliente…</option>
-              {clientes.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.nombre}
-                  {c.dni ? ` · DNI ${c.dni}` : ""}
-                </option>
-              ))}
-            </select>
-            <button
-              type="button"
-              className="btn secondary small"
-              onClick={() => setNewClienteOpen(true)}
-            >
-              Nuevo
-            </button>
+          <div className="owner-picker">
+            <div className="actions" style={{ alignItems: "stretch" }}>
+              <input
+                type="search"
+                placeholder="Buscar por nombre, DNI o teléfono…"
+                value={ownerQuery}
+                onChange={(e) => {
+                  setOwnerQuery(e.target.value);
+                  setOwnerId("");
+                  setOwnerListOpen(true);
+                  setClienteError("");
+                }}
+                onFocus={() => setOwnerListOpen(true)}
+                onBlur={() => {
+                  window.setTimeout(() => setOwnerListOpen(false), 150);
+                }}
+                autoComplete="off"
+                style={{ flex: 1 }}
+              />
+              <button
+                type="button"
+                className="btn secondary small"
+                onClick={() => setNewClienteOpen(true)}
+              >
+                Nuevo
+              </button>
+            </div>
+            {ownerId ? (
+              <small className="owner-selected">
+                Seleccionado:{" "}
+                {clientes.find((c) => String(c.id) === ownerId)?.nombre ||
+                  ownerQuery}
+              </small>
+            ) : null}
+            {ownerListOpen ? (
+              <ul className="owner-results" role="listbox">
+                {filteredOwners.length === 0 ? (
+                  <li className="owner-empty">Sin resultados</li>
+                ) : (
+                  filteredOwners.map((c) => (
+                    <li key={c.id}>
+                      <button
+                        type="button"
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => selectOwner(c)}
+                      >
+                        <strong>{c.nombre}</strong>
+                        <span>
+                          {[
+                            c.dni ? `DNI ${c.dni}` : "",
+                            c.telefono || "",
+                          ]
+                            .filter(Boolean)
+                            .join(" · ") || "Sin datos de contacto"}
+                        </span>
+                      </button>
+                    </li>
+                  ))
+                )}
+              </ul>
+            ) : null}
           </div>
           {clienteError ? (
             <small style={{ color: "var(--danger)" }}>{clienteError}</small>
@@ -173,7 +229,7 @@ export default function MascotasPage() {
           <select name="especie" defaultValue={editing.especie}>
             {ESPECIES.map((e) => (
               <option key={e} value={e}>
-                {e}
+                {labelEspecie(e)}
               </option>
             ))}
           </select>
@@ -229,8 +285,7 @@ export default function MascotasPage() {
           <textarea name="notas" defaultValue={editing.notas} />
         </div>
       </div>
-    );
-  }
+  );
 
   const nuevoClienteModal = (
     <Modal
@@ -292,7 +347,7 @@ export default function MascotasPage() {
           {(close) => (
             <>
               <form onSubmit={(e) => onSubmit(e, close)}>
-                <FormFields />
+                {formFields}
                 <SubmitRow onCancel={close} />
               </form>
               {nuevoClienteModal}
@@ -345,7 +400,7 @@ export default function MascotasPage() {
                     </td>
                     <td>{m.cliente_nombre}</td>
                     <td>
-                      {m.especie}
+                      {labelEspecie(m.especie)}
                       {m.raza ? ` · ${m.raza}` : ""}
                     </td>
                     <td>{m.sexo}</td>
@@ -376,7 +431,7 @@ export default function MascotasPage() {
                           {(close) => (
                             <>
                               <form onSubmit={(e) => onSubmit(e, close)}>
-                                <FormFields />
+                                {formFields}
                                 <SubmitRow onCancel={close} />
                               </form>
                               {nuevoClienteModal}

@@ -41,13 +41,8 @@ export default function LoginClient() {
   return (
     <div className="login-page">
       <div className="login-card">
-        <p className="brand-kicker" style={{ color: "var(--muted)" }}>
-          Acceso al sistema
-        </p>
         <h1>Veterinaria Portella</h1>
-        <p className="login-sub">
-          Ingresa con tu usuario de la clínica para continuar.
-        </p>
+        <p className="login-sub">Inicia sesión en tu cuenta</p>
 
         <form onSubmit={onSubmit}>
           <div className="field">
@@ -77,7 +72,7 @@ export default function LoginClient() {
             disabled={loading}
             style={{ width: "100%" }}
           >
-            {loading ? "Entrando…" : "Entrar"}
+            {loading ? "Entrando…" : "Iniciar sesión"}
           </button>
         </form>
 

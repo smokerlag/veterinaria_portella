@@ -4,6 +4,7 @@ import {
   listCitas,
   listPendientes,
 } from "@/lib/queries";
+import { labelEspecie } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -70,7 +71,7 @@ export default function HomePage() {
                       <td>
                         {c.mascota_nombre}
                         <div style={{ color: "var(--muted)", fontSize: "0.82rem" }}>
-                          {c.especie}
+                          {c.especie ? labelEspecie(c.especie) : null}
                         </div>
                       </td>
                       <td>
