@@ -344,27 +344,54 @@ export function createHistorial(data: {
   mascota_id: number;
   fecha: string;
   tipo: string;
+  motivo_consulta?: string;
+  anamnesis?: string;
+  temperatura_c?: number | null;
+  fc_lpm?: number | null;
+  fr_rpm?: number | null;
+  estado_hidratacion?: string;
+  mucosas?: string;
+  tllc_seg?: number | null;
+  condicion_corporal?: string;
+  hallazgos?: string;
+  examenes_complementarios?: string;
   diagnostico?: string;
   tratamiento?: string;
+  evolucion_observaciones?: string;
+  pronostico?: string;
   peso_kg?: number | null;
-  temperatura_c?: number | null;
   notas?: string;
   veterinario?: string;
 }) {
   const result = getDb()
     .prepare(
       `INSERT INTO historial_clinico
-       (mascota_id, fecha, tipo, diagnostico, tratamiento, peso_kg, temperatura_c, notas, veterinario)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+       (mascota_id, fecha, tipo, motivo_consulta, anamnesis, temperatura_c,
+        fc_lpm, fr_rpm, estado_hidratacion, mucosas, tllc_seg, condicion_corporal,
+        hallazgos, examenes_complementarios, diagnostico, tratamiento,
+        evolucion_observaciones, pronostico, peso_kg, notas, veterinario)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     )
     .run(
       data.mascota_id,
       data.fecha,
       data.tipo || "consulta",
+      data.motivo_consulta?.trim() || null,
+      data.anamnesis?.trim() || null,
+      data.temperatura_c ?? null,
+      data.fc_lpm ?? null,
+      data.fr_rpm ?? null,
+      data.estado_hidratacion?.trim() || null,
+      data.mucosas?.trim() || null,
+      data.tllc_seg ?? null,
+      data.condicion_corporal?.trim() || null,
+      data.hallazgos?.trim() || null,
+      data.examenes_complementarios?.trim() || null,
       data.diagnostico?.trim() || null,
       data.tratamiento?.trim() || null,
+      data.evolucion_observaciones?.trim() || null,
+      data.pronostico?.trim() || null,
       data.peso_kg ?? null,
-      data.temperatura_c ?? null,
       data.notas?.trim() || null,
       data.veterinario?.trim() || null
     );

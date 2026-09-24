@@ -163,10 +163,22 @@ function migrate(database: DatabaseSync) {
       fecha TEXT NOT NULL DEFAULT (date('now','localtime')),
       tipo TEXT NOT NULL DEFAULT 'consulta'
         CHECK (tipo IN ('consulta','vacuna','cirugia','laboratorio','desparasitacion','urgencia','otro')),
+      motivo_consulta TEXT,
+      anamnesis TEXT,
+      temperatura_c REAL,
+      fc_lpm REAL,
+      fr_rpm REAL,
+      estado_hidratacion TEXT,
+      mucosas TEXT,
+      tllc_seg REAL,
+      condicion_corporal TEXT,
+      hallazgos TEXT,
+      examenes_complementarios TEXT,
       diagnostico TEXT,
       tratamiento TEXT,
+      evolucion_observaciones TEXT,
+      pronostico TEXT,
       peso_kg REAL,
-      temperatura_c REAL,
       notas TEXT,
       veterinario TEXT,
       creado_en TEXT NOT NULL DEFAULT (datetime('now','localtime')),
@@ -209,6 +221,7 @@ function migrate(database: DatabaseSync) {
 
   migrateUsuariosRoles(database);
   ensureClienteDniColumn(database);
+  ensureHistorialClinicoColumns(database);
 }
 
 function ensureClienteDniColumn(database: DatabaseSync) {
@@ -217,5 +230,31 @@ function ensureClienteDniColumn(database: DatabaseSync) {
   }[];
   if (!cols.some((c) => c.name === "dni")) {
     database.exec(`ALTER TABLE clientes ADD COLUMN dni TEXT`);
+  }
+}
+
+function ensureHistorialClinicoColumns(database: DatabaseSync) {
+  const cols = database
+    .prepare(`PRAGMA table_info(historial_clinico)`)
+    .all() as { name: string }[];
+  const names = new Set(cols.map((c) => c.name));
+  const additions: [string, string][] = [
+    ["motivo_consulta", "TEXT"],
+    ["anamnesis", "TEXT"],
+    ["fc_lpm", "REAL"],
+    ["fr_rpm", "REAL"],
+    ["estado_hidratacion", "TEXT"],
+    ["mucosas", "TEXT"],
+    ["tllc_seg", "REAL"],
+    ["condicion_corporal", "TEXT"],
+    ["hallazgos", "TEXT"],
+    ["examenes_complementarios", "TEXT"],
+    ["evolucion_observaciones", "TEXT"],
+    ["pronostico", "TEXT"],
+  ];
+  for (const [name, type] of additions) {
+    if (!names.has(name)) {
+      database.exec(`ALTER TABLE historial_clinico ADD COLUMN ${name} ${type}`);
+    }
   }
 }

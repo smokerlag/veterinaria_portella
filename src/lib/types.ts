@@ -47,10 +47,22 @@ export type Historial = {
   mascota_id: number;
   fecha: string;
   tipo: string;
+  motivo_consulta: string | null;
+  anamnesis: string | null;
+  temperatura_c: number | null;
+  fc_lpm: number | null;
+  fr_rpm: number | null;
+  estado_hidratacion: string | null;
+  mucosas: string | null;
+  tllc_seg: number | null;
+  condicion_corporal: string | null;
+  hallazgos: string | null;
+  examenes_complementarios: string | null;
   diagnostico: string | null;
   tratamiento: string | null;
+  evolucion_observaciones: string | null;
+  pronostico: string | null;
   peso_kg: number | null;
-  temperatura_c: number | null;
   notas: string | null;
   veterinario: string | null;
   creado_en: string;
@@ -87,6 +99,26 @@ export const TIPOS_HISTORIAL = [
   "urgencia",
   "otro",
 ] as const;
+
+export const PRONOSTICOS = [
+  { value: "favorable", label: "Favorable" },
+  { value: "reservado", label: "Reservado" },
+  { value: "desfavorable", label: "Desfavorable" },
+  { value: "en_observacion", label: "En observación" },
+] as const;
+
+export function labelPronostico(value: string) {
+  const found = PRONOSTICOS.find((p) => p.value === value);
+  return found?.label || value;
+}
+
+export function parsePronosticos(raw: string | null | undefined): string[] {
+  if (!raw?.trim()) return [];
+  return raw
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
 export const ESTADOS_CITA = [
   "programada",
   "confirmada",
