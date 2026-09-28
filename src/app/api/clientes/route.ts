@@ -6,6 +6,10 @@ import {
   updateCliente,
 } from "@/lib/queries";
 import { requireDeletePermission } from "@/lib/api-auth";
+import {
+  normalizeClienteFields,
+  validateClienteFields,
+} from "@/lib/validation";
 
 export const runtime = "nodejs";
 
@@ -16,19 +20,26 @@ export function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  if (!body.nombre?.trim()) {
-    return NextResponse.json({ error: "Nombre requerido" }, { status: 400 });
+  const fields = normalizeClienteFields(body);
+  const error = validateClienteFields(fields);
+  if (error) {
+    return NextResponse.json({ error }, { status: 400 });
   }
-  const id = createCliente(body);
+  const id = createCliente(fields);
   return NextResponse.json({ id }, { status: 201 });
 }
 
 export async function PUT(req: NextRequest) {
   const body = await req.json();
-  if (!body.id || !body.nombre?.trim()) {
+  if (!body.id) {
     return NextResponse.json({ error: "Datos incompletos" }, { status: 400 });
   }
-  updateCliente(Number(body.id), body);
+  const fields = normalizeClienteFields(body);
+  const error = validateClienteFields(fields);
+  if (error) {
+    return NextResponse.json({ error }, { status: 400 });
+  }
+  updateCliente(Number(body.id), fields);
   return NextResponse.json({ ok: true });
 }
 

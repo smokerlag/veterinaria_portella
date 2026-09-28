@@ -4,6 +4,7 @@ import { getDb } from "./db";
 import {
   ROLES,
   SESSION_COOKIE,
+  SESSION_MAX_AGE_SECONDS,
   SESSION_SECRET,
   type SessionUser,
   type UserRole,
@@ -11,6 +12,7 @@ import {
 
 export {
   SESSION_COOKIE,
+  SESSION_MAX_AGE_SECONDS,
   SESSION_SECRET,
   verifySessionTokenEdge,
   ROLES,
@@ -18,8 +20,6 @@ export {
   type SessionUser,
   type UserRole,
 } from "./auth-shared";
-
-const SESSION_DAYS = 7;
 
 export type Usuario = SessionUser & {
   activo: number;
@@ -58,12 +58,14 @@ function fromB64url(input: string) {
 }
 
 export function createSessionToken(user: SessionUser) {
+  const issuedAt = Date.now();
   const payload = {
     id: user.id,
     username: user.username,
     nombre: user.nombre,
     rol: user.rol,
-    exp: Date.now() + SESSION_DAYS * 24 * 60 * 60 * 1000,
+    iat: issuedAt,
+    exp: issuedAt + SESSION_MAX_AGE_SECONDS * 1000,
   };
   const body = b64url(JSON.stringify(payload));
   const sig = createHmac("sha256", SESSION_SECRET).update(body).digest("base64url");
@@ -85,9 +87,19 @@ export function parseSessionToken(
 
   try {
     const payload = JSON.parse(fromB64url(body).toString("utf8")) as SessionUser & {
+      iat: number;
       exp: number;
     };
-    if (!payload?.id || !payload.exp || payload.exp < Date.now()) return null;
+    const now = Date.now();
+    if (
+      !payload?.id ||
+      !payload.iat ||
+      !payload.exp ||
+      payload.iat > now ||
+      payload.iat < now - SESSION_MAX_AGE_SECONDS * 1000 ||
+      payload.exp <= now ||
+      payload.exp - payload.iat > SESSION_MAX_AGE_SECONDS * 1000
+    ) return null;
     if (!ROLES.includes(payload.rol)) return null;
     return {
       id: payload.id,
@@ -109,6 +121,29 @@ export function findUsuarioByUsername(username: string) {
     .get(username.trim()) as
     | (Usuario & { password_hash: string })
     | undefined;
+}
+
+export function changeOwnPassword(
+  id: number,
+  currentPassword: string,
+  newPassword: string
+) {
+  const user = getDb()
+    .prepare(`SELECT password_hash FROM usuarios WHERE id = ? AND activo = 1`)
+    .get(id) as { password_hash: string } | undefined;
+  if (!user || !verifyPassword(currentPassword, user.password_hash)) {
+    return false;
+  }
+  getDb()
+    .prepare(`UPDATE usuarios SET password_hash = ? WHERE id = ?`)
+    .run(hashPassword(newPassword), id);
+  return true;
+}
+
+export function updateOwnProfile(id: number, username: string, nombre: string) {
+  getDb()
+    .prepare(`UPDATE usuarios SET username = ?, nombre = ? WHERE id = ? AND activo = 1`)
+    .run(username.trim().toLowerCase(), nombre.trim(), id);
 }
 
 export function listUsuarios(): Usuario[] {
@@ -229,7 +264,7 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
 }
 
 export function sessionCookieOptions(
-  maxAgeSeconds = SESSION_DAYS * 24 * 60 * 60
+  maxAgeSeconds = SESSION_MAX_AGE_SECONDS
 ) {
   return {
     httpOnly: true,

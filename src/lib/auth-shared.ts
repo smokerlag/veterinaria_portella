@@ -1,4 +1,5 @@
 export const SESSION_COOKIE = "vp_session";
+export const SESSION_MAX_AGE_SECONDS = 2 * 60 * 60;
 
 /** Secreto local. Opcional: define SESSION_SECRET en el entorno. */
 export const SESSION_SECRET =
@@ -54,8 +55,20 @@ export async function verifySessionTokenEdge(
   try {
     const pad = body.length % 4 === 0 ? "" : "=".repeat(4 - (body.length % 4));
     const json = atob(body.replace(/-/g, "+").replace(/_/g, "/") + pad);
-    const payload = JSON.parse(json) as SessionUser & { exp: number };
-    if (!payload?.id || !payload.exp || payload.exp < Date.now()) return null;
+    const payload = JSON.parse(json) as SessionUser & {
+      iat: number;
+      exp: number;
+    };
+    const now = Date.now();
+    if (
+      !payload?.id ||
+      !payload.iat ||
+      !payload.exp ||
+      payload.iat > now ||
+      payload.iat < now - SESSION_MAX_AGE_SECONDS * 1000 ||
+      payload.exp <= now ||
+      payload.exp - payload.iat > SESSION_MAX_AGE_SECONDS * 1000
+    ) return null;
     if (!ROLES.includes(payload.rol)) return null;
     return {
       id: payload.id,

@@ -116,6 +116,36 @@ textarea {
   color: rgba(255, 255, 255, 0.8);
 }
 
+.account-menu {
+  position: absolute;
+  z-index: 20;
+  right: 0;
+  bottom: calc(100% + 0.5rem);
+  width: max-content;
+  min-width: 190px;
+  padding: 0.35rem;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.2);
+}
+
+.account-menu button {
+  display: block;
+  width: 100%;
+  padding: 0.65rem 0.75rem;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+.account-menu button:hover {
+  background: var(--bg);
+}
+
 .main {
   padding: 1.5rem 1.75rem 2.5rem;
 }
@@ -221,8 +251,8 @@ th,
 td {
   padding: 0.75rem 0.85rem;
   border-bottom: 1px solid var(--line);
-  text-align: left;
-  vertical-align: top;
+  text-align: center;
+  vertical-align: middle;
   font-size: 0.94rem;
 }
 
@@ -442,6 +472,7 @@ tr:hover td {
   max-height: 90vh;
   overflow: auto;
   background: white;
+  color: var(--ink);
   border-radius: 16px;
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.2);
 }
@@ -572,6 +603,10 @@ tr:hover td {
   display: flex;
   gap: 0.5rem;
   flex-wrap: wrap;
+}
+
+td .actions {
+  justify-content: center;
 }
 
 .owner-picker {

@@ -1,10 +1,11 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
-import { Modal, ModalForm, SubmitRow, apiJson } from "@/components/ui";
+import { Modal, ModalForm, SubmitRow, apiJson, onDigitsOnly } from "@/components/ui";
 import type { Cliente, Mascota } from "@/lib/types";
-import { ESPECIES, labelEspecie } from "@/lib/types";
+import { ESPECIES, labelEspecie, labelSexo } from "@/lib/types";
 import { useAuth } from "@/hooks/useAuth";
+import { validateClienteFields } from "@/lib/validation";
 
 const empty = {
   id: 0,
@@ -120,22 +121,29 @@ export default function MascotasPage() {
       direccion: String(fd.get("direccion") || ""),
       notas: String(fd.get("notas") || ""),
     };
-    if (!payload.nombre.trim()) {
-      setClienteError("El nombre del cliente es obligatorio");
+    const invalid = validateClienteFields(payload);
+    if (invalid) {
+      setClienteError(invalid);
       return;
     }
 
-    const created = await apiJson<{ id: number }>("/api/clientes", {
-      method: "POST",
-      body: JSON.stringify(payload),
-    });
-    const owners = await apiJson<Cliente[]>("/api/clientes");
-    setClientes(owners);
-    const nuevo = owners.find((c) => c.id === created.id);
-    setOwnerId(String(created.id));
-    setOwnerQuery(nuevo ? ownerLabel(nuevo) : payload.nombre);
-    setOwnerListOpen(false);
-    setNewClienteOpen(false);
+    try {
+      const created = await apiJson<{ id: number }>("/api/clientes", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
+      const owners = await apiJson<Cliente[]>("/api/clientes");
+      setClientes(owners);
+      const nuevo = owners.find((c) => c.id === created.id);
+      setOwnerId(String(created.id));
+      setOwnerQuery(nuevo ? ownerLabel(nuevo) : payload.nombre);
+      setOwnerListOpen(false);
+      setNewClienteOpen(false);
+    } catch (err) {
+      setClienteError(
+        err instanceof Error ? err.message : "No se pudo guardar el cliente"
+      );
+    }
   }
 
   const ownerFilter = ownerQuery.trim().toLowerCase();
@@ -301,16 +309,41 @@ export default function MascotasPage() {
             <input name="nombre" required autoFocus />
           </div>
           <div className="field">
-            <label>DNI</label>
-            <input name="dni" />
+            <label>DNI (8 dígitos)</label>
+            <input
+              name="dni"
+              required
+              inputMode="numeric"
+              pattern="\d{8}"
+              maxLength={8}
+              placeholder="12345678"
+              title="Exactamente 8 dígitos"
+              onInput={(e) => onDigitsOnly(e, 8)}
+            />
           </div>
           <div className="field">
-            <label>Teléfono</label>
-            <input name="telefono" />
+            <label>Celular (9 dígitos)</label>
+            <input
+              name="telefono"
+              required
+              inputMode="numeric"
+              pattern="\d{9}"
+              maxLength={9}
+              placeholder="987654321"
+              title="Exactamente 9 dígitos"
+              onInput={(e) => onDigitsOnly(e, 9)}
+            />
           </div>
           <div className="field">
             <label>Email</label>
-            <input name="email" type="email" />
+            <input
+              name="email"
+              type="email"
+              required
+              placeholder="nombre@dominio.com"
+              pattern="[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}"
+              title="Formato de correo: nombre@dominio.com"
+            />
           </div>
           <div className="field full">
             <label>Dirección</label>
@@ -403,7 +436,7 @@ export default function MascotasPage() {
                       {labelEspecie(m.especie)}
                       {m.raza ? ` · ${m.raza}` : ""}
                     </td>
-                    <td>{m.sexo}</td>
+                    <td>{labelSexo(m.sexo)}</td>
                     <td>{m.peso_kg != null ? `${m.peso_kg} kg` : "—"}</td>
                     <td>
                       <div className="actions">

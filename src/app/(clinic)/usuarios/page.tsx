@@ -129,7 +129,13 @@ export default function UsuariosPage() {
                 </div>
                 <div className="field">
                   <label>Contraseña</label>
-                  <input name="password" type="password" required />
+                  <input
+                    name="password"
+                    type="password"
+                    minLength={8}
+                    autoComplete="new-password"
+                    required
+                  />
                 </div>
               </div>
               <SubmitRow onCancel={close} />
@@ -224,7 +230,12 @@ export default function UsuariosPage() {
                                 </div>
                                 <div className="field full">
                                   <label>Nueva contraseña (opcional)</label>
-                                  <input name="password" type="password" />
+                                  <input
+                                    name="password"
+                                    type="password"
+                                    minLength={8}
+                                    autoComplete="new-password"
+                                  />
                                 </div>
                               </div>
                               <SubmitRow onCancel={close} />

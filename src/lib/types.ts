@@ -90,6 +90,11 @@ export function labelEspecie(especie: string) {
   if (!especie) return "";
   return especie.charAt(0).toUpperCase() + especie.slice(1).toLowerCase();
 }
+
+export function labelSexo(sexo: string) {
+  if (!sexo) return "";
+  return sexo.charAt(0).toUpperCase() + sexo.slice(1).toLowerCase();
+}
 export const TIPOS_HISTORIAL = [
   "consulta",
   "vacuna",

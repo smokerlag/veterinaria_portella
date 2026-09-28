@@ -19,13 +19,16 @@ if (count > 0) {
 
 const c1 = createCliente({
   nombre: "María López",
+  dni: "12345678",
   telefono: "999111222",
   email: "maria@example.com",
   direccion: "Av. Principal 123",
 });
 const c2 = createCliente({
   nombre: "Carlos Ruiz",
+  dni: "87654321",
   telefono: "988777666",
+  email: "carlos@example.com",
   direccion: "Jr. Los Olivos 45",
 });
 

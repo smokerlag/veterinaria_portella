@@ -114,6 +114,16 @@ export async function apiJson<T>(
   return res.json();
 }
 
+/** Deja solo dígitos y corta al máximo (DNI/celular). */
+export function onDigitsOnly(
+  e: FormEvent<HTMLInputElement>,
+  maxLen: number
+) {
+  e.currentTarget.value = e.currentTarget.value
+    .replace(/\D/g, "")
+    .slice(0, maxLen);
+}
+
 export function handleForm(
   e: FormEvent<HTMLFormElement>,
   onSubmit: (data: FormData) => Promise<void>

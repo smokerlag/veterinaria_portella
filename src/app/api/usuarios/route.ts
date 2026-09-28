@@ -44,6 +44,12 @@ export async function POST(req: NextRequest) {
   if (!username || !password || !nombre || !isRole(rol)) {
     return NextResponse.json({ error: "Datos incompletos" }, { status: 400 });
   }
+  if (password.length < 8) {
+    return NextResponse.json(
+      { error: "La contraseña debe tener al menos 8 caracteres" },
+      { status: 400 }
+    );
+  }
 
   try {
     const id = createUsuario({ username, password, nombre, rol });
@@ -71,6 +77,12 @@ export async function PUT(req: NextRequest) {
 
   if (!id || !username || !nombre || !isRole(rol)) {
     return NextResponse.json({ error: "Datos incompletos" }, { status: 400 });
+  }
+  if (password && password.length < 8) {
+    return NextResponse.json(
+      { error: "La contraseña debe tener al menos 8 caracteres" },
+      { status: 400 }
+    );
   }
 
   try {
