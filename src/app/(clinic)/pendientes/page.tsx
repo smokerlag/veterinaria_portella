@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { ModalForm, SubmitRow, apiJson } from "@/components/ui";
 import type { Cliente, Mascota, Pendiente } from "@/lib/types";
 import { useAuth } from "@/hooks/useAuth";
+import { Check, Pencil, Plus, Trash2 } from "lucide-react";
 
 const empty = {
   id: 0,
@@ -148,7 +149,14 @@ export default function PendientesPage() {
         </div>
         <ModalForm
           title="Nuevo pendiente"
-          triggerLabel="Nuevo pendiente"
+          triggerLabel={
+            <>
+              <Plus className="mobile-action-icon" size={18} aria-hidden="true" />
+              <span className="mobile-action-text">Nuevo pendiente</span>
+            </>
+          }
+          triggerAriaLabel="Nuevo pendiente"
+          triggerClassName="btn icon-action"
           onOpen={() => setEditing(empty)}
         >
           {(close) => (
@@ -195,15 +203,25 @@ export default function PendientesPage() {
                   {p.estado !== "hecho" ? (
                     <button
                       type="button"
-                      className="btn secondary small"
+                      className="btn secondary small icon-action"
+                      aria-label="Marcar pendiente como hecho"
+                      title="Marcar pendiente como hecho"
                       onClick={() => markDone(p)}
                     >
-                      Marcar hecho
+                      <Check className="mobile-action-icon" size={18} aria-hidden="true" />
+                      <span className="mobile-action-text">Marcar hecho</span>
                     </button>
                   ) : null}
                   <ModalForm
                     title="Editar pendiente"
-                    triggerLabel="Editar"
+                    triggerLabel={
+                      <>
+                        <Pencil className="mobile-action-icon" size={17} aria-hidden="true" />
+                        <span className="mobile-action-text">Editar</span>
+                      </>
+                    }
+                    triggerAriaLabel="Editar pendiente"
+                    triggerClassName="btn secondary small icon-action"
                     onOpen={() =>
                       setEditing({
                         id: p.id,
@@ -227,10 +245,13 @@ export default function PendientesPage() {
                   {canDelete ? (
                     <button
                       type="button"
-                      className="btn danger small"
+                      className="btn danger small icon-action"
+                      aria-label="Eliminar pendiente"
+                      title="Eliminar pendiente"
                       onClick={() => remove(p.id)}
                     >
-                      Eliminar
+                      <Trash2 className="mobile-action-icon" size={17} aria-hidden="true" />
+                      <span className="mobile-action-text">Eliminar</span>
                     </button>
                   ) : null}
                 </div>

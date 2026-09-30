@@ -7,6 +7,7 @@ import { ESPECIES, labelEspecie, labelSexo } from "@/lib/types";
 import { useAuth } from "@/hooks/useAuth";
 import { validateClienteFields } from "@/lib/validation";
 import { useRouter } from "next/navigation";
+import { ClipboardPlus, Pencil, Plus, Trash2 } from "lucide-react";
 
 const empty = {
   id: 0,
@@ -399,7 +400,14 @@ export default function MascotasPage() {
         </div>
         <ModalForm
           title="Nueva mascota"
-          triggerLabel="Nueva mascota"
+          triggerLabel={
+            <>
+              <Plus className="mobile-action-icon" size={18} aria-hidden="true" />
+              <span className="mobile-action-text">Nueva mascota</span>
+            </>
+          }
+          triggerAriaLabel="Nueva mascota"
+          triggerClassName="btn icon-action"
           onOpen={() => openPetForm(empty)}
         >
           {(close) => (
@@ -498,18 +506,27 @@ export default function MascotasPage() {
                         {canWriteHistorial ? (
                           <button
                             type="button"
-                            className="btn small"
+                            className="btn small icon-action"
+                            aria-label="Agregar registro clínico"
+                            title="Agregar registro clínico"
                             onClick={() =>
                               router.push(`/historial?mascotaId=${m.id}&nuevo=1`)
                             }
                           >
-                            Agregar registro
+                            <ClipboardPlus className="mobile-action-icon" size={18} aria-hidden="true" />
+                            <span className="mobile-action-text">Agregar registro</span>
                           </button>
                         ) : null}
                         <ModalForm
                           title="Editar mascota"
-                          triggerLabel="Editar"
-                          triggerClassName="btn secondary small"
+                          triggerLabel={
+                            <>
+                              <Pencil className="mobile-action-icon" size={17} aria-hidden="true" />
+                              <span className="mobile-action-text">Editar</span>
+                            </>
+                          }
+                          triggerAriaLabel="Editar mascota"
+                          triggerClassName="btn secondary small icon-action"
                           onOpen={() =>
                             openPetForm({
                               id: m.id,
@@ -541,10 +558,13 @@ export default function MascotasPage() {
                         {canDelete ? (
                           <button
                             type="button"
-                            className="btn danger small"
+                            className="btn danger small icon-action"
+                            aria-label="Eliminar mascota"
+                            title="Eliminar mascota"
                             onClick={() => remove(m.id)}
                           >
-                            Eliminar
+                            <Trash2 className="mobile-action-icon" size={17} aria-hidden="true" />
+                            <span className="mobile-action-text">Eliminar</span>
                           </button>
                         ) : null}
                       </div>

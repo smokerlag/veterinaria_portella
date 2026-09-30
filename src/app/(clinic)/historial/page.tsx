@@ -10,6 +10,7 @@ import {
   parsePronosticos,
 } from "@/lib/types";
 import { useAuth } from "@/hooks/useAuth";
+import { Eye, Plus, Trash2 } from "lucide-react";
 
 const today = new Date().toISOString().slice(0, 10);
 
@@ -169,7 +170,14 @@ export default function HistorialPage() {
         {canWriteHistorial ? (
           <ModalForm
             title="Nuevo registro clínico"
-            triggerLabel="Nuevo registro"
+            triggerLabel={
+              <>
+                <Plus className="mobile-action-icon" size={18} aria-hidden="true" />
+                <span className="mobile-action-text">Nuevo registro</span>
+              </>
+            }
+            triggerAriaLabel="Nuevo registro clínico"
+            triggerClassName="btn icon-action"
             openOnMount={autoOpenRecord}
             onOpen={() => setOtherExamSelected(false)}
           >
@@ -484,18 +492,24 @@ export default function HistorialPage() {
                       <div className="actions">
                         <button
                           type="button"
-                          className="btn secondary small"
+                          className="btn secondary small icon-action"
+                          aria-label="Ver registro clínico"
+                          title="Ver registro clínico"
                           onClick={() => setViewing(h)}
                         >
-                          Ver
+                          <Eye className="mobile-action-icon" size={18} aria-hidden="true" />
+                          <span className="mobile-action-text">Ver</span>
                         </button>
                         {canWriteHistorial ? (
                           <button
                             type="button"
-                            className="btn danger small"
+                            className="btn danger small icon-action"
+                            aria-label="Eliminar registro clínico"
+                            title="Eliminar registro clínico"
                             onClick={() => remove(h.id)}
                           >
-                            Eliminar
+                            <Trash2 className="mobile-action-icon" size={17} aria-hidden="true" />
+                            <span className="mobile-action-text">Eliminar</span>
                           </button>
                         ) : null}
                       </div>

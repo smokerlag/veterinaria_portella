@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { ModalForm, SubmitRow, apiJson } from "@/components/ui";
 import { ROLE_LABELS, type UserRole } from "@/lib/auth-shared";
+import { Pencil, Plus, Trash2 } from "lucide-react";
 
 type Usuario = {
   id: number;
@@ -101,7 +102,14 @@ export default function UsuariosPage() {
         </div>
         <ModalForm
           title="Nuevo usuario"
-          triggerLabel="Nuevo usuario"
+          triggerLabel={
+            <>
+              <Plus className="mobile-action-icon" size={18} aria-hidden="true" />
+              <span className="mobile-action-text">Nuevo usuario</span>
+            </>
+          }
+          triggerAriaLabel="Nuevo usuario"
+          triggerClassName="btn icon-action"
           onOpen={() => {
             setError("");
             setEditing(empty);
@@ -180,8 +188,14 @@ export default function UsuariosPage() {
                       <div className="actions">
                         <ModalForm
                           title="Editar usuario"
-                          triggerLabel="Editar"
-                          triggerClassName="btn secondary small"
+                          triggerLabel={
+                            <>
+                              <Pencil className="mobile-action-icon" size={17} aria-hidden="true" />
+                              <span className="mobile-action-text">Editar</span>
+                            </>
+                          }
+                          triggerAriaLabel="Editar usuario"
+                          triggerClassName="btn secondary small icon-action"
                           onOpen={() =>
                             setEditing({
                               id: u.id,
@@ -247,10 +261,13 @@ export default function UsuariosPage() {
                         ) : (
                           <button
                             type="button"
-                            className="btn danger small"
+                            className="btn danger small icon-action"
+                            aria-label="Eliminar usuario"
+                            title="Eliminar usuario"
                             onClick={() => remove(u.id)}
                           >
-                            Eliminar
+                            <Trash2 className="mobile-action-icon" size={17} aria-hidden="true" />
+                            <span className="mobile-action-text">Eliminar</span>
                           </button>
                         )}
                       </div>

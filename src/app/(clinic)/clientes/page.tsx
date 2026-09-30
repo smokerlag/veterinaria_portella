@@ -7,6 +7,7 @@ import type { Cliente } from "@/lib/types";
 import { ESPECIES, labelEspecie } from "@/lib/types";
 import { useAuth } from "@/hooks/useAuth";
 import { validateClienteFields } from "@/lib/validation";
+import { Eye, Pencil, Plus, Trash2 } from "lucide-react";
 
 const empty = {
   id: 0,
@@ -182,7 +183,14 @@ export default function ClientesPage() {
         </div>
         <ModalForm
           title={editing.id ? "Editar cliente" : "Nuevo cliente"}
-          triggerLabel="Nuevo cliente"
+          triggerLabel={
+            <>
+              <Plus className="mobile-action-icon" size={18} aria-hidden="true" />
+              <span className="mobile-action-text">Nuevo cliente</span>
+            </>
+          }
+          triggerAriaLabel="Nuevo cliente"
+          triggerClassName="btn icon-action"
           onOpen={() => {
             setEditing(empty);
             setFormError("");
@@ -247,15 +255,24 @@ export default function ClientesPage() {
                     <td>
                       <div className="actions">
                         <Link
-                          className="btn small"
+                          className="btn small icon-action"
                           href={`/mascotas?clienteId=${c.id}`}
+                          aria-label="Ver mascotas"
+                          title="Ver mascotas"
                         >
-                          Ver mascotas
+                          <Eye className="mobile-action-icon" size={18} aria-hidden="true" />
+                          <span className="mobile-action-text">Ver mascotas</span>
                         </Link>
                         <ModalForm
                           title={`Nueva mascota · ${c.nombre}`}
-                          triggerLabel="Nueva mascota"
-                          triggerClassName="btn secondary small"
+                          triggerLabel={
+                            <>
+                              <Plus className="mobile-action-icon" size={18} aria-hidden="true" />
+                              <span className="mobile-action-text">Nueva mascota</span>
+                            </>
+                          }
+                          triggerAriaLabel="Nueva mascota"
+                          triggerClassName="btn secondary small icon-action"
                           onOpen={() => setPetError("")}
                         >
                           {(close) => (
@@ -343,8 +360,14 @@ export default function ClientesPage() {
                         </ModalForm>
                         <ModalForm
                           title="Editar cliente"
-                          triggerLabel="Editar"
-                          triggerClassName="btn secondary small"
+                          triggerLabel={
+                            <>
+                              <Pencil className="mobile-action-icon" size={17} aria-hidden="true" />
+                              <span className="mobile-action-text">Editar</span>
+                            </>
+                          }
+                          triggerAriaLabel="Editar cliente"
+                          triggerClassName="btn secondary small icon-action"
                           onOpen={() => {
                             setFormError("");
                             setEditing({
@@ -385,10 +408,13 @@ export default function ClientesPage() {
                         {canDelete ? (
                           <button
                             type="button"
-                            className="btn danger small"
+                            className="btn danger small icon-action"
+                            aria-label="Eliminar cliente"
+                            title="Eliminar cliente"
                             onClick={() => remove(c.id)}
                           >
-                            Eliminar
+                            <Trash2 className="mobile-action-icon" size={17} aria-hidden="true" />
+                            <span className="mobile-action-text">Eliminar</span>
                           </button>
                         ) : null}
                       </div>

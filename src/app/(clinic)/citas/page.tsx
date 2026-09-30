@@ -18,6 +18,7 @@ import { ModalForm, SubmitRow, apiJson } from "@/components/ui";
 import type { Cita, Mascota } from "@/lib/types";
 import { ESTADOS_CITA } from "@/lib/types";
 import { useAuth } from "@/hooks/useAuth";
+import { Pencil, Plus, Trash2 } from "lucide-react";
 
 const today = new Date().toISOString().slice(0, 10);
 const todayDate = parseISO(today);
@@ -153,7 +154,14 @@ export default function CitasPage() {
         </div>
         <ModalForm
           title="Nueva cita"
-          triggerLabel="Nueva cita"
+          triggerLabel={
+            <>
+              <Plus className="mobile-action-icon" size={18} aria-hidden="true" />
+              <span className="mobile-action-text">Nueva cita</span>
+            </>
+          }
+          triggerAriaLabel="Nueva cita"
+          triggerClassName="btn icon-action"
           onOpen={() =>
             setEditing({
               ...empty,
@@ -272,7 +280,14 @@ export default function CitasPage() {
                   <div className="actions" style={{ marginTop: 8 }}>
                     <ModalForm
                       title="Editar cita"
-                      triggerLabel="Editar"
+                      triggerLabel={
+                        <>
+                          <Pencil className="mobile-action-icon" size={17} aria-hidden="true" />
+                          <span className="mobile-action-text">Editar</span>
+                        </>
+                      }
+                      triggerAriaLabel="Editar cita"
+                      triggerClassName="btn secondary small icon-action"
                       onOpen={() =>
                         setEditing({
                           id: c.id,
@@ -296,10 +311,13 @@ export default function CitasPage() {
                     {canDelete ? (
                       <button
                         type="button"
-                        className="btn danger small"
+                        className="btn danger small icon-action"
+                        aria-label="Eliminar cita"
+                        title="Eliminar cita"
                         onClick={() => remove(c.id)}
                       >
-                        Eliminar
+                        <Trash2 className="mobile-action-icon" size={17} aria-hidden="true" />
+                        <span className="mobile-action-text">Eliminar</span>
                       </button>
                     ) : null}
                   </div>

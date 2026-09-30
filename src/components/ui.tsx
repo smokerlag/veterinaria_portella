@@ -4,8 +4,9 @@ import { FormEvent, ReactNode, useEffect, useRef, useState } from "react";
 
 type Props = {
   title: string;
-  triggerLabel: string;
+  triggerLabel: ReactNode;
   triggerClassName?: string;
+  triggerAriaLabel?: string;
   openOnMount?: boolean;
   children: (close: () => void) => ReactNode;
   onOpen?: () => void;
@@ -64,6 +65,7 @@ export function ModalForm({
   title,
   triggerLabel,
   triggerClassName = "btn",
+  triggerAriaLabel,
   openOnMount = false,
   children,
   onOpen,
@@ -85,7 +87,13 @@ export function ModalForm({
 
   return (
     <>
-      <button type="button" className={triggerClassName} onClick={openModal}>
+      <button
+        type="button"
+        className={triggerClassName}
+        aria-label={triggerAriaLabel}
+        title={triggerAriaLabel}
+        onClick={openModal}
+      >
         {triggerLabel}
       </button>
       <Modal open={open} title={title} onClose={close}>
