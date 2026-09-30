@@ -13,10 +13,12 @@ Sistema local de gestión veterinaria para PC servidor. Corre en el navegador de
 ```bash
 cd veterinaria_portella
 npm install
-npm run db:seed
 ```
 
-`db:seed` carga clientes/mascotas/citas de ejemplo. Puedes omitirlo si quieres empezar vacío.
+La compilación y el inicio (`npm run build`, `npm start`) no cargan datos de prueba.
+Solo ejecuta `npm run db:seed` si quieres cargar explícitamente usuarios, clientes,
+mascotas y citas de demostración en una base vacía. No ejecutes ese comando sobre
+una base clínica existente.
 
 ## Uso diario en el servidor
 
@@ -47,7 +49,10 @@ Desde otras PCs/celulares de la misma red WiFi/LAN:
 - **Historial clínico**: consultas, vacunas, tratamientos
 - **Pendientes**: tareas y recordatorios
 
-### Acceso inicial
+### Usuarios de demostración
+
+Estos accesos se crean únicamente al ejecutar `npm run db:seed` en una base vacía.
+No se crean automáticamente durante el build ni al iniciar la aplicación.
 
 | Rol | Usuario | Contraseña |
 | --- | --- | --- |

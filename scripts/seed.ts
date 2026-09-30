@@ -1,3 +1,4 @@
+import { randomBytes, scryptSync } from "node:crypto";
 import { getDb } from "../src/lib/db";
 import {
   createCita,
@@ -15,6 +16,20 @@ const count = (
 if (count > 0) {
   console.log("La base ya tiene datos. Seed omitido.");
   process.exit(0);
+}
+
+const defaultUsers = [
+  { username: "admin", password: "admin123", nombre: "Administrador", rol: "admin" },
+  { username: "veterinario", password: "vet123", nombre: "Veterinario", rol: "veterinario" },
+  { username: "asistente", password: "asis123", nombre: "Asistente", rol: "asistente" },
+] as const;
+const insertUser = db.prepare(
+  `INSERT INTO usuarios (username, password_hash, nombre, rol) VALUES (?, ?, ?, ?)`
+);
+for (const user of defaultUsers) {
+  const salt = randomBytes(16).toString("hex");
+  const hash = scryptSync(user.password, salt, 64).toString("hex");
+  insertUser.run(user.username, `${salt}:${hash}`, user.nombre, user.rol);
 }
 
 const c1 = createCliente({

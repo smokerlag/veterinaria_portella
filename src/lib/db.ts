@@ -1,5 +1,4 @@
 import { DatabaseSync } from "node:sqlite";
-import { randomBytes, scryptSync } from "crypto";
 import fs from "fs";
 import path from "path";
 
@@ -19,57 +18,7 @@ export function getDb() {
   db.exec("PRAGMA journal_mode = WAL;");
   db.exec("PRAGMA foreign_keys = ON;");
   migrate(db);
-  ensureDefaultUsers(db);
   return db;
-}
-
-function hashPassword(password: string) {
-  const salt = randomBytes(16).toString("hex");
-  const hash = scryptSync(password, salt, 64).toString("hex");
-  return `${salt}:${hash}`;
-}
-
-function ensureDefaultUsers(database: DatabaseSync) {
-  const defaults = [
-    {
-      username: "admin",
-      password: "admin123",
-      nombre: "Administrador",
-      rol: "admin",
-    },
-    {
-      username: "veterinario",
-      password: "vet123",
-      nombre: "Veterinario",
-      rol: "veterinario",
-    },
-    {
-      username: "asistente",
-      password: "asis123",
-      nombre: "Asistente",
-      rol: "asistente",
-    },
-  ] as const;
-
-  const find = database.prepare(
-    `SELECT id FROM usuarios WHERE username = ? COLLATE NOCASE`
-  );
-  const insert = database.prepare(
-    `INSERT INTO usuarios (username, password_hash, nombre, rol)
-     VALUES (?, ?, ?, ?)`
-  );
-
-  for (const user of defaults) {
-    const exists = find.get(user.username);
-    if (!exists) {
-      insert.run(
-        user.username,
-        hashPassword(user.password),
-        user.nombre,
-        user.rol
-      );
-    }
-  }
 }
 
 function migrateUsuariosRoles(database: DatabaseSync) {

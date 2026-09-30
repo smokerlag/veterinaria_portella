@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import { ROLE_LABELS, type UserRole } from "@/lib/auth-shared";
 import { canManageUsers } from "@/lib/permissions";
 import { Modal, SubmitRow, apiJson } from "@/components/ui";
@@ -23,6 +23,7 @@ export function Sidebar() {
   const router = useRouter();
   const [user, setUser] = useState<Me | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const accountMenuRef = useRef<HTMLDivElement>(null);
   const [profileOpen, setProfileOpen] = useState(false);
   const [passwordOpen, setPasswordOpen] = useState(false);
   const [profileError, setProfileError] = useState("");
@@ -35,6 +36,19 @@ export function Sidebar() {
       .then((data) => setUser(data?.user ?? null))
       .catch(() => setUser(null));
   }, []);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+
+    function closeMenuOnOutsideClick(event: MouseEvent) {
+      if (!accountMenuRef.current?.contains(event.target as Node)) {
+        setMenuOpen(false);
+      }
+    }
+
+    document.addEventListener("click", closeMenuOnOutsideClick);
+    return () => document.removeEventListener("click", closeMenuOnOutsideClick);
+  }, [menuOpen]);
 
   async function logout() {
     await fetch("/api/auth/logout", { method: "POST" });
@@ -117,7 +131,7 @@ export function Sidebar() {
       </nav>
       <div className="sidebar-note">
         {user ? (
-          <div style={{ display: "flex", alignItems: "flex-start", gap: 8, position: "relative" }}>
+          <div ref={accountMenuRef} style={{ display: "flex", alignItems: "flex-start", gap: 8, position: "relative" }}>
             <div style={{ flex: 1, minWidth: 0 }}>
               <strong>{user.nombre}</strong>
               <div style={{ opacity: 0.8 }}>
