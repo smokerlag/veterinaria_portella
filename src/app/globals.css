@@ -684,6 +684,183 @@ select.search {
   }
 }
 
+@media (max-width: 640px) {
+  .sidebar {
+    gap: 0.65rem;
+    padding: 0.75rem 0.75rem 0.65rem;
+  }
+
+  .brand {
+    padding: 0.1rem 0.25rem 0.35rem;
+    border-bottom: 0;
+  }
+
+  .brand-kicker {
+    font-size: 0.65rem;
+  }
+
+  .brand h1 {
+    margin-top: 0.2rem;
+    font-size: 1.2rem;
+  }
+
+  .nav {
+    flex-wrap: nowrap;
+    gap: 0.3rem;
+    margin: 0 -0.1rem;
+    padding-bottom: 0.15rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .nav a {
+    flex: 0 0 auto;
+    padding: 0.55rem 0.65rem;
+    font-size: 0.82rem;
+    white-space: nowrap;
+  }
+
+  .sidebar-note {
+    margin-top: 0;
+    padding: 0.55rem 0.65rem;
+    border-radius: 8px;
+    font-size: 0.75rem;
+  }
+
+  .main {
+    min-width: 0;
+    padding: 1rem 0.8rem calc(1.5rem + env(safe-area-inset-bottom));
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.7rem;
+    margin-bottom: 1rem;
+  }
+
+  .page-header h2 {
+    font-size: 1.45rem;
+  }
+
+  .page-header > .btn {
+    align-self: flex-start;
+  }
+
+  .toolbar {
+    gap: 0.5rem;
+  }
+
+  .toolbar .search {
+    flex: 1 1 100%;
+    max-width: none;
+  }
+
+  .stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.55rem;
+  }
+
+  .stat {
+    padding: 0.75rem 0.8rem;
+  }
+
+  .stat span {
+    font-size: 0.78rem;
+  }
+
+  .stat strong {
+    font-size: 1.45rem;
+  }
+
+  .form-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+
+  .calendar {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 0.2rem;
+  }
+
+  .cal-head {
+    display: block;
+    padding: 0.25rem 0.05rem;
+    font-size: 0.62rem;
+  }
+
+  .cal-day {
+    min-width: 0;
+    min-height: 64px;
+    padding: 0.3rem;
+    border-radius: 8px;
+  }
+
+  .cal-day strong {
+    margin-bottom: 0.2rem;
+    font-size: 0.78rem;
+  }
+
+  .cal-chip {
+    padding: 0.12rem 0.15rem;
+    font-size: 0.56rem;
+  }
+
+  .table-wrap table {
+    min-width: 680px;
+  }
+
+  th,
+  td {
+    padding: 0.55rem 0.6rem;
+    font-size: 0.82rem;
+  }
+
+  .modal-backdrop {
+    place-items: end center;
+    padding: 0;
+  }
+
+  .modal,
+  .modal:has(.clinical-form) {
+    width: 100%;
+    max-width: none;
+    max-height: 94dvh;
+    border-radius: 16px 16px 0 0;
+  }
+
+  .modal-head {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    padding: 0.75rem 0.9rem;
+    background: white;
+  }
+
+  .modal-head h3 {
+    font-size: 1rem;
+  }
+
+  .modal-body {
+    padding: 0.85rem 0.9rem calc(1rem + env(safe-area-inset-bottom));
+  }
+
+  .check-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.4rem;
+  }
+
+  .check-item {
+    gap: 0.4rem;
+    padding: 0.55rem 0.6rem;
+    font-size: 0.82rem;
+  }
+}
+
 .modal-head {
   display: flex;
   justify-content: space-between;
@@ -895,4 +1072,36 @@ td .actions {
   color: #606770;
   font-size: 0.78rem;
   line-height: 1.45;
+}
+
+@media (max-width: 640px) {
+  .sidebar {
+    min-width: 0;
+  }
+
+  .nav {
+    width: 100%;
+    min-width: 0;
+    flex-wrap: nowrap;
+  }
+
+  .stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .calendar {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+  }
+
+  .cal-head {
+    display: block;
+  }
+
+  .modal-head {
+    padding: 0.75rem 0.9rem;
+  }
+
+  .modal-body {
+    padding: 0.85rem 0.9rem calc(1rem + env(safe-area-inset-bottom));
+  }
 }
