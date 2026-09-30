@@ -139,6 +139,7 @@ function migrate(database: DatabaseSync) {
       microchip TEXT,
       activo INTEGER NOT NULL DEFAULT 1,
       notas TEXT,
+      importante TEXT,
       creado_en TEXT NOT NULL DEFAULT (datetime('now','localtime')),
       FOREIGN KEY (cliente_id) REFERENCES clientes(id) ON DELETE CASCADE
     );
@@ -221,6 +222,7 @@ function migrate(database: DatabaseSync) {
 
   migrateUsuariosRoles(database);
   ensureClienteDniColumn(database);
+  ensureMascotasImportantColumn(database);
   ensureHistorialClinicoColumns(database);
 }
 
@@ -230,6 +232,15 @@ function ensureClienteDniColumn(database: DatabaseSync) {
   }[];
   if (!cols.some((c) => c.name === "dni")) {
     database.exec(`ALTER TABLE clientes ADD COLUMN dni TEXT`);
+  }
+}
+
+function ensureMascotasImportantColumn(database: DatabaseSync) {
+  const cols = database.prepare(`PRAGMA table_info(mascotas)`).all() as {
+    name: string;
+  }[];
+  if (!cols.some((c) => c.name === "importante")) {
+    database.exec(`ALTER TABLE mascotas ADD COLUMN importante TEXT`);
   }
 }
 

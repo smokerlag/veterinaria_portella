@@ -40,7 +40,12 @@ export default function HistorialPage() {
   const [items, setItems] = useState<Historial[]>([]);
   const [mascotas, setMascotas] = useState<Mascota[]>([]);
   const [mascotaId, setMascotaId] = useState("");
+  const [mascotaQuery, setMascotaQuery] = useState("");
+  const [petListOpen, setPetListOpen] = useState(false);
+  const [petError, setPetError] = useState("");
   const [viewing, setViewing] = useState<Historial | null>(null);
+  const [autoOpenRecord, setAutoOpenRecord] = useState(false);
+  const [otherExamSelected, setOtherExamSelected] = useState(false);
 
   async function load(filter = mascotaId) {
     const [h, m] = await Promise.all([
@@ -51,18 +56,40 @@ export default function HistorialPage() {
     ]);
     setItems(h);
     setMascotas(m);
+    const selectedPet = m.find((pet) => String(pet.id) === filter);
+    if (selectedPet) {
+      setMascotaQuery(`${selectedPet.nombre} · ${selectedPet.cliente_nombre}`);
+    }
   }
 
   useEffect(() => {
-    load();
+    const params = new URLSearchParams(window.location.search);
+    const requestedPetId = params.get("mascotaId") || "";
+    setMascotaId(requestedPetId);
+    setAutoOpenRecord(params.get("nuevo") === "1");
+    load(requestedPetId);
   }, []);
 
   async function onSubmit(e: FormEvent<HTMLFormElement>, close: () => void) {
     e.preventDefault();
+    if (!mascotaId) {
+      setPetError("Selecciona una mascota de los resultados");
+      setPetListOpen(true);
+      return;
+    }
     const fd = new FormData(e.currentTarget);
     const pronostico = PRONOSTICOS.map((p) => p.value).filter(
       (value) => fd.get(`pronostico_${value}`) === "on"
     );
+    const examenesComplementarios = fd
+      .getAll("examenes_complementarios")
+      .map(String)
+      .map((examen) =>
+        examen === "Otros"
+          ? `Otros: ${String(fd.get("otro_examen_complementario") || "").trim()}`
+          : examen
+      )
+      .join(", ");
 
     await apiJson("/api/historial", {
       method: "POST",
@@ -80,9 +107,7 @@ export default function HistorialPage() {
         tllc_seg: numOrEmpty(fd.get("tllc_seg")),
         condicion_corporal: String(fd.get("condicion_corporal") || ""),
         hallazgos: String(fd.get("hallazgos") || ""),
-        examenes_complementarios: String(
-          fd.get("examenes_complementarios") || ""
-        ),
+        examenes_complementarios: examenesComplementarios,
         diagnostico: String(fd.get("diagnostico") || ""),
         tratamiento: String(fd.get("tratamiento") || ""),
         evolucion_observaciones: String(
@@ -102,6 +127,32 @@ export default function HistorialPage() {
   }
 
   const firma = user?.nombre || "—";
+  const selectedPet = mascotas.find((pet) => String(pet.id) === mascotaId);
+  const petFilter = mascotaQuery.trim().toLowerCase();
+  const normalizedDniQuery = petFilter
+    .replace(/^dni\b[\s:]*/, "")
+    .replace(/\D/g, "");
+  const isDniQuery =
+    /^\d+$/.test(normalizedDniQuery) &&
+    (/^\d/.test(petFilter) || /^dni\b/.test(petFilter));
+  const filteredPets = mascotas
+    .filter((pet) => {
+      if (!petFilter) return true;
+      const textMatches = [
+        pet.nombre,
+        pet.cliente_nombre,
+        pet.cliente_dni,
+        pet.especie,
+        pet.raza,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase()
+        .includes(petFilter);
+      const dni = String(pet.cliente_dni || "").replace(/\D/g, "");
+      return textMatches || (isDniQuery && dni.includes(normalizedDniQuery));
+    })
+    .slice(0, 20);
 
   return (
     <>
@@ -115,23 +166,94 @@ export default function HistorialPage() {
           </p>
         </div>
         {canWriteHistorial ? (
-          <ModalForm title="Nuevo registro clínico" triggerLabel="Nuevo registro">
+          <ModalForm
+            title="Nuevo registro clínico"
+            triggerLabel="Nuevo registro"
+            openOnMount={autoOpenRecord}
+            onOpen={() => setOtherExamSelected(false)}
+          >
             {(close) => (
               <form className="clinical-form" onSubmit={(e) => onSubmit(e, close)}>
                 <div className="form-grid">
                   <div className="field full">
-                    <label>Mascota</label>
-                    <select name="mascota_id" required defaultValue="">
-                      <option value="" disabled>
-                        Seleccionar
-                      </option>
-                      {mascotas.map((m) => (
-                        <option key={m.id} value={m.id}>
-                          {m.nombre} · {m.cliente_nombre}
-                        </option>
-                      ))}
-                    </select>
+                    <label htmlFor="mascota-search">Mascota</label>
+                    <input type="hidden" name="mascota_id" value={mascotaId} />
+                    <div className="owner-picker">
+                      <input
+                        id="mascota-search"
+                        type="search"
+                        role="combobox"
+                        aria-autocomplete="list"
+                        aria-expanded={petListOpen}
+                        aria-controls="mascota-results"
+                        placeholder="Buscar por mascota o dueño..."
+                        value={mascotaQuery}
+                        required
+                        autoComplete="off"
+                        onChange={(event) => {
+                          setMascotaQuery(event.target.value);
+                          setMascotaId("");
+                          setPetError("");
+                          setPetListOpen(true);
+                        }}
+                        onFocus={() => setPetListOpen(true)}
+                        onBlur={() => {
+                          window.setTimeout(() => setPetListOpen(false), 150);
+                        }}
+                      />
+                      {petListOpen ? (
+                        <ul
+                          id="mascota-results"
+                          className="owner-results"
+                          role="listbox"
+                        >
+                          {filteredPets.length === 0 ? (
+                            <li className="owner-empty">Sin resultados</li>
+                          ) : (
+                            filteredPets.map((pet) => (
+                              <li key={pet.id}>
+                                <button
+                                  type="button"
+                                  role="option"
+                                  aria-selected={String(pet.id) === mascotaId}
+                                  onMouseDown={(event) => event.preventDefault()}
+                                  onClick={() => {
+                                    setMascotaId(String(pet.id));
+                                    setMascotaQuery(
+                                      `${pet.nombre} · ${pet.cliente_nombre}`
+                                    );
+                                    setPetError("");
+                                    setPetListOpen(false);
+                                  }}
+                                >
+                                  <strong>{pet.nombre}</strong>
+                                  <span>
+                                    {[
+                                      pet.cliente_nombre,
+                                      pet.cliente_dni ? `DNI ${pet.cliente_dni}` : "",
+                                      pet.especie,
+                                      pet.raza,
+                                    ]
+                                      .filter(Boolean)
+                                      .join(" · ")}
+                                  </span>
+                                </button>
+                              </li>
+                            ))
+                          )}
+                        </ul>
+                      ) : null}
+                    </div>
+                    {petError ? (
+                      <small style={{ color: "var(--danger)" }}>{petError}</small>
+                    ) : null}
                   </div>
+                  {selectedPet?.importante?.trim() ? (
+                    <div className="clinical-important-card" role="note">
+                      <strong>Importante para {selectedPet.nombre}</strong>
+                      <p>{selectedPet.importante}</p>
+                    </div>
+                  ) : null}
                   <div className="field">
                     <label>Fecha</label>
                     <input
@@ -210,12 +332,44 @@ export default function HistorialPage() {
 
                 <section className="form-section">
                   <h4>Exámenes complementarios</h4>
-                  <p className="form-hint">
-                    Laboratorio, radiografías, ecografía, etc.
-                  </p>
-                  <div className="field full">
-                    <textarea name="examenes_complementarios" rows={3} />
+                  <div className="check-grid">
+                    {[
+                      "Hemograma",
+                      "Bioquímico",
+                      "Ecografía",
+                      "Radiografía",
+                      "Inmunofluorescencia",
+                      "Otros",
+                    ].map((examen) => (
+                      <label key={examen} className="check-item">
+                        <input
+                          type="checkbox"
+                          name="examenes_complementarios"
+                          value={examen}
+                          checked={examen === "Otros" ? otherExamSelected : undefined}
+                          onChange={
+                            examen === "Otros"
+                              ? (event) =>
+                                  setOtherExamSelected(event.currentTarget.checked)
+                              : undefined
+                          }
+                        />
+                        <span>{examen}</span>
+                      </label>
+                    ))}
                   </div>
+                  {otherExamSelected ? (
+                    <div className="field full other-exam-field">
+                      <label htmlFor="otro_examen_complementario">
+                        Especifica el examen
+                      </label>
+                      <input
+                        id="otro_examen_complementario"
+                        name="otro_examen_complementario"
+                        required
+                      />
+                    </div>
+                  ) : null}
                 </section>
 
                 <section className="form-section">

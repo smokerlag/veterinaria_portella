@@ -22,8 +22,10 @@ export type Mascota = {
   microchip: string | null;
   activo: number;
   notas: string | null;
+  importante: string | null;
   creado_en: string;
   cliente_nombre?: string;
+  cliente_dni?: string | null;
 };
 
 export type Cita = {

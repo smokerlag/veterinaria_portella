@@ -104,7 +104,7 @@ export function listMascotas(opts?: {
   const where = clauses.length ? `WHERE ${clauses.join(" AND ")}` : "";
   return db
     .prepare(
-      `SELECT m.*, c.nombre AS cliente_nombre
+      `SELECT m.*, c.nombre AS cliente_nombre, c.dni AS cliente_dni
        FROM mascotas m
        JOIN clientes c ON c.id = m.cliente_id
        ${where}
@@ -135,12 +135,13 @@ export function createMascota(data: {
   peso_kg?: number | null;
   microchip?: string;
   notas?: string;
+  importante?: string;
 }) {
   const result = getDb()
     .prepare(
       `INSERT INTO mascotas
-       (cliente_id, nombre, especie, raza, sexo, fecha_nacimiento, color, peso_kg, microchip, notas)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      (cliente_id, nombre, especie, raza, sexo, fecha_nacimiento, color, peso_kg, microchip, notas, importante)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     )
     .run(
       data.cliente_id,
@@ -152,7 +153,8 @@ export function createMascota(data: {
       data.color?.trim() || null,
       data.peso_kg ?? null,
       data.microchip?.trim() || null,
-      data.notas?.trim() || null
+      data.notas?.trim() || null,
+      data.importante?.trim() || null
     );
   return Number(result.lastInsertRowid);
 }
@@ -171,6 +173,7 @@ export function updateMascota(
     microchip?: string;
     activo?: number;
     notas?: string;
+    importante?: string;
   }
 ) {
   getDb()
@@ -186,7 +189,8 @@ export function updateMascota(
          peso_kg = ?,
          microchip = ?,
          activo = ?,
-         notas = ?
+         notas = ?,
+         importante = ?
        WHERE id = ?`
     )
     .run(
@@ -201,6 +205,7 @@ export function updateMascota(
       data.microchip?.trim() || null,
       data.activo ?? 1,
       data.notas?.trim() || null,
+      data.importante?.trim() || null,
       id
     );
 }

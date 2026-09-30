@@ -6,6 +6,7 @@ import type { Cliente, Mascota } from "@/lib/types";
 import { ESPECIES, labelEspecie, labelSexo } from "@/lib/types";
 import { useAuth } from "@/hooks/useAuth";
 import { validateClienteFields } from "@/lib/validation";
+import { useRouter } from "next/navigation";
 
 const empty = {
   id: 0,
@@ -19,6 +20,7 @@ const empty = {
   peso_kg: "",
   microchip: "",
   notas: "",
+  importante: "",
   activo: 1,
 };
 
@@ -27,10 +29,12 @@ function ownerLabel(c: Cliente) {
 }
 
 export default function MascotasPage() {
-  const { canDelete } = useAuth();
+  const { canDelete, canWriteHistorial } = useAuth();
+  const router = useRouter();
   const [items, setItems] = useState<Mascota[]>([]);
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [q, setQ] = useState("");
+  const [clienteIdFilter, setClienteIdFilter] = useState("");
   const [editing, setEditing] = useState(empty);
   const [ownerId, setOwnerId] = useState("");
   const [ownerQuery, setOwnerQuery] = useState("");
@@ -38,11 +42,12 @@ export default function MascotasPage() {
   const [newClienteOpen, setNewClienteOpen] = useState(false);
   const [clienteError, setClienteError] = useState("");
 
-  async function load(search = q) {
+  async function load(search = q, selectedClienteId = clienteIdFilter) {
+    const params = new URLSearchParams();
+    if (search) params.set("q", search);
+    if (selectedClienteId) params.set("clienteId", selectedClienteId);
     const [mascotas, owners] = await Promise.all([
-      apiJson<Mascota[]>(
-        `/api/mascotas${search ? `?q=${encodeURIComponent(search)}` : ""}`
-      ),
+      apiJson<Mascota[]>(`/api/mascotas${params.size ? `?${params}` : ""}`),
       apiJson<Cliente[]>("/api/clientes"),
     ]);
     setItems(mascotas);
@@ -50,7 +55,10 @@ export default function MascotasPage() {
   }
 
   useEffect(() => {
-    load();
+    const selectedClienteId =
+      new URLSearchParams(window.location.search).get("clienteId") || "";
+    setClienteIdFilter(selectedClienteId);
+    load(q, selectedClienteId);
   }, []);
 
   function openPetForm(data = empty) {
@@ -84,6 +92,7 @@ export default function MascotasPage() {
       peso_kg: peso ? Number(peso) : null,
       microchip: String(fd.get("microchip") || ""),
       notas: String(fd.get("notas") || ""),
+      importante: String(fd.get("importante") || ""),
       activo: Number(fd.get("activo") || 1),
     };
 
@@ -147,6 +156,9 @@ export default function MascotasPage() {
   }
 
   const ownerFilter = ownerQuery.trim().toLowerCase();
+  const selectedClient = clientes.find(
+    (cliente) => String(cliente.id) === clienteIdFilter
+  );
   const filteredOwners = clientes
     .filter((c) => {
       if (!ownerFilter) return true;
@@ -289,6 +301,15 @@ export default function MascotasPage() {
           </div>
         ) : null}
         <div className="field full">
+          <label>Importante</label>
+          <textarea
+            name="importante"
+            rows={2}
+            placeholder="Alergias, enfermedades, cuidados especiales..."
+            defaultValue={editing.importante}
+          />
+        </div>
+        <div className="field full">
           <label>Notas</label>
           <textarea name="notas" defaultValue={editing.notas} />
         </div>
@@ -369,8 +390,12 @@ export default function MascotasPage() {
     <>
       <div className="page-header">
         <div>
-          <h2>Mascotas</h2>
-          <p>Pacientes vinculados a cada cliente</p>
+          <h2>{selectedClient ? `Mascotas de ${selectedClient.nombre}` : "Mascotas"}</h2>
+          <p>
+            {selectedClient
+              ? `Cliente${selectedClient.dni ? ` · DNI ${selectedClient.dni}` : ""}`
+              : "Pacientes vinculados a cada cliente"}
+          </p>
         </div>
         <ModalForm
           title="Nueva mascota"
@@ -402,12 +427,29 @@ export default function MascotasPage() {
         <button type="button" className="btn secondary" onClick={() => load()}>
           Buscar
         </button>
+        {selectedClient ? (
+          <button
+            type="button"
+            className="btn secondary"
+            onClick={() => {
+              setClienteIdFilter("");
+              router.replace("/mascotas");
+              load(q, "");
+            }}
+          >
+            Ver todas
+          </button>
+        ) : null}
       </div>
 
       <section className="panel">
         <div className="table-wrap">
           {items.length === 0 ? (
-            <div className="empty">No hay mascotas registradas.</div>
+            <div className="empty">
+              {selectedClient
+                ? "Este cliente no tiene mascotas registradas."
+                : "No hay mascotas registradas."}
+            </div>
           ) : (
             <table>
               <thead>
@@ -424,7 +466,20 @@ export default function MascotasPage() {
                 {items.map((m) => (
                   <tr key={m.id}>
                     <td>
-                      {m.nombre}
+                      <div className="pet-name-line">
+                        {m.nombre}
+                        {m.importante?.trim() ? (
+                          <span
+                            className="pet-important-indicator"
+                            role="img"
+                            aria-label={`Importante: ${m.importante}`}
+                            data-tooltip={m.importante}
+                            tabIndex={0}
+                          >
+                            !
+                          </span>
+                        ) : null}
+                      </div>
                       {!m.activo ? (
                         <div>
                           <span className="badge cancelada">inactiva</span>
@@ -440,6 +495,17 @@ export default function MascotasPage() {
                     <td>{m.peso_kg != null ? `${m.peso_kg} kg` : "—"}</td>
                     <td>
                       <div className="actions">
+                        {canWriteHistorial ? (
+                          <button
+                            type="button"
+                            className="btn small"
+                            onClick={() =>
+                              router.push(`/historial?mascotaId=${m.id}&nuevo=1`)
+                            }
+                          >
+                            Agregar registro
+                          </button>
+                        ) : null}
                         <ModalForm
                           title="Editar mascota"
                           triggerLabel="Editar"
@@ -457,6 +523,7 @@ export default function MascotasPage() {
                               peso_kg: m.peso_kg?.toString() || "",
                               microchip: m.microchip || "",
                               notas: m.notas || "",
+                              importante: m.importante || "",
                               activo: m.activo,
                             })
                           }

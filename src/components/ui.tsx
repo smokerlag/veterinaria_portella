@@ -1,11 +1,12 @@
 "use client";
 
-import { FormEvent, ReactNode, useState } from "react";
+import { FormEvent, ReactNode, useEffect, useRef, useState } from "react";
 
 type Props = {
   title: string;
   triggerLabel: string;
   triggerClassName?: string;
+  openOnMount?: boolean;
   children: (close: () => void) => ReactNode;
   onOpen?: () => void;
 };
@@ -23,11 +24,23 @@ export function Modal({
   nested?: boolean;
   children: ReactNode;
 }) {
+  const backdropPointerDown = useRef(false);
   if (!open) return null;
   return (
     <div
       className={`modal-backdrop${nested ? " nested" : ""}`}
-      onClick={onClose}
+      onPointerDown={(event) => {
+        backdropPointerDown.current = event.target === event.currentTarget;
+      }}
+      onPointerUp={(event) => {
+        const clickedBackdrop =
+          backdropPointerDown.current && event.target === event.currentTarget;
+        backdropPointerDown.current = false;
+        if (clickedBackdrop) onClose();
+      }}
+      onPointerCancel={() => {
+        backdropPointerDown.current = false;
+      }}
     >
       <div
         className="modal"
@@ -51,10 +64,15 @@ export function ModalForm({
   title,
   triggerLabel,
   triggerClassName = "btn",
+  openOnMount = false,
   children,
   onOpen,
 }: Props) {
   const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    if (openOnMount) setOpen(true);
+  }, [openOnMount]);
 
   function openModal() {
     onOpen?.();

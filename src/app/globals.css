@@ -312,6 +312,10 @@ tr:hover td {
   margin-bottom: 0.85rem;
 }
 
+.other-exam-field {
+  margin-top: 0.9rem;
+}
+
 .field label {
   font-size: 0.85rem;
   color: var(--muted);
@@ -358,6 +362,92 @@ tr:hover td {
   font-weight: 700;
   background: var(--brand-soft);
   color: var(--brand-dark);
+}
+
+.pet-name-line {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+}
+
+.pet-important-indicator {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  flex: 0 0 1.25rem;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 1px solid #efc0ba;
+  border-radius: 50%;
+  background: #fde8e6;
+  color: var(--danger);
+  font-size: 0.85rem;
+  font-weight: 800;
+  line-height: 1;
+  cursor: help;
+}
+
+.pet-important-indicator::after {
+  position: absolute;
+  top: 50%;
+  left: calc(100% + 0.55rem);
+  z-index: 40;
+  width: max-content;
+  max-width: min(300px, 65vw);
+  padding: 0.65rem 0.75rem;
+  border-radius: 8px;
+  background: var(--ink);
+  box-shadow: var(--shadow);
+  color: white;
+  content: attr(data-tooltip);
+  font-size: 0.82rem;
+  font-weight: 500;
+  line-height: 1.4;
+  text-align: left;
+  white-space: normal;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-50%);
+  transition: opacity 120ms ease, visibility 120ms ease;
+  pointer-events: none;
+}
+
+.pet-important-indicator:hover::after,
+.pet-important-indicator:focus-visible::after {
+  opacity: 1;
+  visibility: visible;
+}
+
+.pet-important-indicator:focus-visible {
+  outline: 2px solid var(--danger);
+  outline-offset: 2px;
+}
+
+.clinical-important-card {
+  grid-column: 1 / -1;
+  margin: 0.3rem 0 0.85rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid #efc0ba;
+  border-left: 4px solid var(--danger);
+  border-radius: 8px;
+  background: #fff4f2;
+  color: var(--ink);
+}
+
+.clinical-important-card strong {
+  display: block;
+  margin-bottom: 0.3rem;
+  color: var(--danger);
+}
+
+.clinical-important-card p {
+  margin: 0;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
 .badge.alta {

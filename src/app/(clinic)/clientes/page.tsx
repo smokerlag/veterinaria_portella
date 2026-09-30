@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import Link from "next/link";
 import { ModalForm, SubmitRow, apiJson, onDigitsOnly } from "@/components/ui";
 import type { Cliente } from "@/lib/types";
 import { ESPECIES, labelEspecie } from "@/lib/types";
@@ -92,6 +93,7 @@ export default function ClientesPage() {
       peso_kg: peso ? Number(peso) : null,
       microchip: String(fd.get("microchip") || ""),
       notas: String(fd.get("notas") || ""),
+      importante: String(fd.get("importante") || ""),
       activo: 1,
     };
 
@@ -235,13 +237,21 @@ export default function ClientesPage() {
               <tbody>
                 {items.map((c) => (
                   <tr key={c.id}>
-                    <td>{c.nombre}</td>
+                    <td>
+                      {c.nombre}
+                    </td>
                     <td>{c.dni || "—"}</td>
                     <td>{c.telefono || "—"}</td>
                     <td>{c.email || "—"}</td>
                     <td>{c.direccion || "—"}</td>
                     <td>
                       <div className="actions">
+                        <Link
+                          className="btn small"
+                          href={`/mascotas?clienteId=${c.id}`}
+                        >
+                          Ver mascotas
+                        </Link>
                         <ModalForm
                           title={`Nueva mascota · ${c.nombre}`}
                           triggerLabel="Nueva mascota"
@@ -305,6 +315,14 @@ export default function ClientesPage() {
                                 <div className="field">
                                   <label>Microchip</label>
                                   <input name="microchip" />
+                                </div>
+                                <div className="field full">
+                                  <label>Importante</label>
+                                  <textarea
+                                    name="importante"
+                                    rows={2}
+                                    placeholder="Alergias, enfermedades, cuidados especiales..."
+                                  />
                                 </div>
                                 <div className="field full">
                                   <label>Notas</label>
