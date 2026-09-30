@@ -8,6 +8,7 @@ import {
   format,
   isSameDay,
   isSameMonth,
+  parseISO,
   startOfMonth,
   startOfWeek,
 } from "date-fns";
@@ -18,10 +19,13 @@ import type { Cita, Mascota } from "@/lib/types";
 import { ESTADOS_CITA } from "@/lib/types";
 import { useAuth } from "@/hooks/useAuth";
 
+const today = new Date().toISOString().slice(0, 10);
+const todayDate = parseISO(today);
+
 const empty = {
   id: 0,
   mascota_id: 0,
-  fecha: format(new Date(), "yyyy-MM-dd"),
+  fecha: today,
   hora: "09:00",
   motivo: "",
   estado: "programada",
@@ -31,10 +35,10 @@ const empty = {
 
 export default function CitasPage() {
   const { canDelete } = useAuth();
-  const [cursor, setCursor] = useState(startOfMonth(new Date()));
+  const [cursor, setCursor] = useState(startOfMonth(todayDate));
   const [citas, setCitas] = useState<Cita[]>([]);
   const [mascotas, setMascotas] = useState<Mascota[]>([]);
-  const [selectedDay, setSelectedDay] = useState(format(new Date(), "yyyy-MM-dd"));
+  const [selectedDay, setSelectedDay] = useState(today);
   const [editing, setEditing] = useState(empty);
 
   const from = format(startOfWeek(startOfMonth(cursor), { weekStartsOn: 1 }), "yyyy-MM-dd");
@@ -188,9 +192,8 @@ export default function CitasPage() {
           type="button"
           className="btn secondary"
           onClick={() => {
-            const now = new Date();
-            setCursor(startOfMonth(now));
-            setSelectedDay(format(now, "yyyy-MM-dd"));
+            setCursor(startOfMonth(todayDate));
+            setSelectedDay(today);
           }}
         >
           Hoy
@@ -217,7 +220,7 @@ export default function CitasPage() {
                     className={[
                       "cal-day",
                       !isSameMonth(day, cursor) ? "muted" : "",
-                      isSameDay(day, new Date()) ? "today" : "",
+                      isSameDay(day, todayDate) ? "today" : "",
                     ]
                       .filter(Boolean)
                       .join(" ")}

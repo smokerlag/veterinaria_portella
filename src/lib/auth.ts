@@ -228,9 +228,12 @@ export function updateUsuario(
 
 export function deleteUsuario(id: number) {
   const user = getDb()
-    .prepare(`SELECT rol FROM usuarios WHERE id = ?`)
-    .get(id) as { rol: string } | undefined;
+    .prepare(`SELECT username, rol FROM usuarios WHERE id = ?`)
+    .get(id) as { username: string; rol: string } | undefined;
   if (!user) return;
+  if (user.username?.toLowerCase() === "admin") {
+    throw new Error("La cuenta admin está protegida y no se puede eliminar");
+  }
   if (user.rol === "admin") {
     const admins = (
       getDb()

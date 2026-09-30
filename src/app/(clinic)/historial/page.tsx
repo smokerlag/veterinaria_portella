@@ -9,8 +9,9 @@ import {
   labelPronostico,
   parsePronosticos,
 } from "@/lib/types";
-import { format } from "date-fns";
 import { useAuth } from "@/hooks/useAuth";
+
+const today = new Date().toISOString().slice(0, 10);
 
 function numOrEmpty(v: FormDataEntryValue | null) {
   const s = String(v || "").trim();
@@ -260,7 +261,7 @@ export default function HistorialPage() {
                       type="date"
                       name="fecha"
                       required
-                      defaultValue={format(new Date(), "yyyy-MM-dd")}
+                      defaultValue={today}
                     />
                   </div>
                   <div className="field">

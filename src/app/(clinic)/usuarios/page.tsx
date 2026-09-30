@@ -242,13 +242,17 @@ export default function UsuariosPage() {
                             </form>
                           )}
                         </ModalForm>
-                        <button
-                          type="button"
-                          className="btn danger small"
-                          onClick={() => remove(u.id)}
-                        >
-                          Eliminar
-                        </button>
+                        {u.username.toLowerCase() === "admin" ? (
+                          <span className="badge cancelada">Protegida</span>
+                        ) : (
+                          <button
+                            type="button"
+                            className="btn danger small"
+                            onClick={() => remove(u.id)}
+                          >
+                            Eliminar
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>

@@ -52,7 +52,6 @@ export default function LoginClient() {
               name="username"
               autoComplete="username"
               required
-              defaultValue="admin"
             />
           </div>
           <div className="field">
@@ -76,10 +75,6 @@ export default function LoginClient() {
           </button>
         </form>
 
-        <p className="login-hint">
-          <strong>admin</strong> / admin123 · <strong>veterinario</strong> /
-          vet123 · <strong>asistente</strong> / asis123
-        </p>
       </div>
     </div>
   );
