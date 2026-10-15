@@ -5,6 +5,7 @@ import {
   listCitas,
   updateCita,
 } from "@/lib/queries";
+import { isTipoCita } from "@/lib/types";
 import { requireDeletePermission } from "@/lib/api-auth";
 
 export const runtime = "nodejs";
@@ -21,7 +22,11 @@ export async function POST(req: NextRequest) {
   if (!body.mascota_id || !body.fecha || !body.hora || !body.motivo?.trim()) {
     return NextResponse.json({ error: "Datos incompletos" }, { status: 400 });
   }
-  const id = createCita(body);
+  const tipo = body.tipo || "medica";
+  if (typeof tipo !== "string" || !isTipoCita(tipo)) {
+    return NextResponse.json({ error: "Tipo de cita inválido" }, { status: 400 });
+  }
+  const id = createCita({ ...body, tipo });
   return NextResponse.json({ id }, { status: 201 });
 }
 
@@ -36,7 +41,11 @@ export async function PUT(req: NextRequest) {
   ) {
     return NextResponse.json({ error: "Datos incompletos" }, { status: 400 });
   }
-  updateCita(Number(body.id), body);
+  const tipo = body.tipo || "medica";
+  if (typeof tipo !== "string" || !isTipoCita(tipo)) {
+    return NextResponse.json({ error: "Tipo de cita inválido" }, { status: 400 });
+  }
+  updateCita(Number(body.id), { ...body, tipo });
   return NextResponse.json({ ok: true });
 }
 

@@ -15,7 +15,7 @@ import {
 import { es } from "date-fns/locale";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { ModalForm, SubmitRow, apiJson } from "@/components/ui";
-import type { Cita, Mascota } from "@/lib/types";
+import type { Cita, Mascota, TipoCita } from "@/lib/types";
 import { ESTADOS_CITA } from "@/lib/types";
 import { useAuth } from "@/hooks/useAuth";
 import { Pencil, Plus, Trash2 } from "lucide-react";
@@ -23,9 +23,20 @@ import { Pencil, Plus, Trash2 } from "lucide-react";
 const today = new Date().toISOString().slice(0, 10);
 const todayDate = parseISO(today);
 
-const empty = {
+const empty: {
+  id: number;
+  mascota_id: number;
+  tipo: TipoCita;
+  fecha: string;
+  hora: string;
+  motivo: string;
+  estado: string;
+  veterinario: string;
+  notas: string;
+} = {
   id: 0,
   mascota_id: 0,
+  tipo: "medica",
   fecha: today,
   hora: "09:00",
   motivo: "",
@@ -41,6 +52,11 @@ export default function CitasPage() {
   const [mascotas, setMascotas] = useState<Mascota[]>([]);
   const [selectedDay, setSelectedDay] = useState(today);
   const [editing, setEditing] = useState(empty);
+  const [visibleTypes, setVisibleTypes] = useState<Record<TipoCita, boolean>>({
+    bano: true,
+    medica: true,
+    cirugia: true,
+  });
 
   const from = format(startOfWeek(startOfMonth(cursor), { weekStartsOn: 1 }), "yyyy-MM-dd");
   const to = format(endOfWeek(endOfMonth(cursor), { weekStartsOn: 1 }), "yyyy-MM-dd");
@@ -65,7 +81,8 @@ export default function CitasPage() {
     });
   }, [cursor]);
 
-  const dayCitas = citas.filter((c) => c.fecha === selectedDay);
+  const visibleCitas = citas.filter((c) => visibleTypes[c.tipo]);
+  const dayCitas = visibleCitas.filter((c) => c.fecha === selectedDay);
 
   async function onSubmit(e: FormEvent<HTMLFormElement>, close: () => void) {
     e.preventDefault();
@@ -73,6 +90,7 @@ export default function CitasPage() {
     const payload = {
       id: editing.id || undefined,
       mascota_id: Number(fd.get("mascota_id")),
+      tipo: String(fd.get("tipo") || "medica"),
       fecha: String(fd.get("fecha")),
       hora: String(fd.get("hora")),
       motivo: String(fd.get("motivo")),
@@ -109,6 +127,14 @@ export default function CitasPage() {
                 {m.nombre} · {m.cliente_nombre}
               </option>
             ))}
+          </select>
+        </div>
+        <div className="field full">
+          <label>Tipo de cita</label>
+          <select name="tipo" required defaultValue={editing.tipo}>
+            <option value="bano">Baño</option>
+            <option value="medica">Cita médica</option>
+            <option value="cirugia">Cirugía</option>
           </select>
         </div>
         <div className="field">
@@ -208,6 +234,30 @@ export default function CitasPage() {
         </button>
       </div>
 
+      <div className="calendar-filters" aria-label="Filtrar calendario por tipo de cita">
+        {([
+          ["bano", "Baños"],
+          ["medica", "Citas médicas"],
+          ["cirugia", "Cirugías"],
+        ] as const).map(([tipo, label]) => (
+          <label className="calendar-filter" key={tipo}>
+            <span>{label}</span>
+            <input
+              type="checkbox"
+              role="switch"
+              checked={visibleTypes[tipo]}
+              onChange={() =>
+                setVisibleTypes((current) => ({
+                  ...current,
+                  [tipo]: !current[tipo],
+                }))
+              }
+              aria-label={`Mostrar ${label.toLowerCase()}`}
+            />
+          </label>
+        ))}
+      </div>
+
       <div className="grid-2">
         <section className="panel">
           <div className="panel-body">
@@ -219,8 +269,9 @@ export default function CitasPage() {
               ))}
               {days.map((day) => {
                 const key = format(day, "yyyy-MM-dd");
-                const items = citas.filter((c) => c.fecha === key).slice(0, 3);
-                const extra = citas.filter((c) => c.fecha === key).length - items.length;
+                const dayItems = visibleCitas.filter((c) => c.fecha === key);
+                const items = dayItems.slice(0, 3);
+                const extra = dayItems.length - items.length;
                 return (
                   <button
                     type="button"
@@ -292,6 +343,7 @@ export default function CitasPage() {
                         setEditing({
                           id: c.id,
                           mascota_id: c.mascota_id,
+                          tipo: c.tipo,
                           fecha: c.fecha,
                           hora: c.hora,
                           motivo: c.motivo,

@@ -31,6 +31,7 @@ export type Mascota = {
 export type Cita = {
   id: number;
   mascota_id: number;
+  tipo: TipoCita;
   fecha: string;
   hora: string;
   motivo: string;
@@ -43,6 +44,14 @@ export type Cita = {
   cliente_nombre?: string;
   cliente_telefono?: string | null;
 };
+
+export const TIPOS_CITA = ["bano", "medica", "cirugia"] as const;
+
+export type TipoCita = (typeof TIPOS_CITA)[number];
+
+export function isTipoCita(value: string): value is TipoCita {
+  return TIPOS_CITA.some((tipo) => tipo === value);
+}
 
 export type Historial = {
   id: number;

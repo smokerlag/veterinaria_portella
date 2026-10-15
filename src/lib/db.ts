@@ -96,6 +96,7 @@ function migrate(database: DatabaseSync) {
     CREATE TABLE IF NOT EXISTS citas (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       mascota_id INTEGER NOT NULL,
+      tipo TEXT NOT NULL DEFAULT 'medica',
       fecha TEXT NOT NULL,
       hora TEXT NOT NULL,
       motivo TEXT NOT NULL,
@@ -172,7 +173,17 @@ function migrate(database: DatabaseSync) {
   migrateUsuariosRoles(database);
   ensureClienteDniColumn(database);
   ensureMascotasImportantColumn(database);
+  ensureCitasTipoColumn(database);
   ensureHistorialClinicoColumns(database);
+}
+
+function ensureCitasTipoColumn(database: DatabaseSync) {
+  const cols = database.prepare(`PRAGMA table_info(citas)`).all() as {
+    name: string;
+  }[];
+  if (!cols.some((c) => c.name === "tipo")) {
+    database.exec(`ALTER TABLE citas ADD COLUMN tipo TEXT NOT NULL DEFAULT 'medica'`);
+  }
 }
 
 function ensureClienteDniColumn(database: DatabaseSync) {

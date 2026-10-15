@@ -76,6 +76,7 @@ const today = new Date().toISOString().slice(0, 10);
 
 createCita({
   mascota_id: m1,
+  tipo: "medica",
   fecha: today,
   hora: "10:00",
   motivo: "Control general",
@@ -84,6 +85,7 @@ createCita({
 });
 createCita({
   mascota_id: m2,
+  tipo: "medica",
   fecha: today,
   hora: "11:30",
   motivo: "Vacuna anual",

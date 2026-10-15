@@ -255,6 +255,7 @@ export function listCitas(opts?: {
 
 export function createCita(data: {
   mascota_id: number;
+  tipo: Cita["tipo"];
   fecha: string;
   hora: string;
   motivo: string;
@@ -264,11 +265,12 @@ export function createCita(data: {
 }) {
   const result = getDb()
     .prepare(
-      `INSERT INTO citas (mascota_id, fecha, hora, motivo, estado, veterinario, notas)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`
+      `INSERT INTO citas (mascota_id, tipo, fecha, hora, motivo, estado, veterinario, notas)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
     )
     .run(
       data.mascota_id,
+      data.tipo,
       data.fecha,
       data.hora,
       data.motivo.trim(),
@@ -283,6 +285,7 @@ export function updateCita(
   id: number,
   data: {
     mascota_id: number;
+    tipo: Cita["tipo"];
     fecha: string;
     hora: string;
     motivo: string;
@@ -295,6 +298,7 @@ export function updateCita(
     .prepare(
       `UPDATE citas SET
          mascota_id = ?,
+         tipo = ?,
          fecha = ?,
          hora = ?,
          motivo = ?,
@@ -305,6 +309,7 @@ export function updateCita(
     )
     .run(
       data.mascota_id,
+      data.tipo,
       data.fecha,
       data.hora,
       data.motivo.trim(),
